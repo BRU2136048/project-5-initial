@@ -1,76 +1,86 @@
 package com.example.sorting;
 
-import org.springframework.util.StopWatch;
-
 import java.util.Arrays;
-import java.util.stream.IntStream;
+import java.util.Random;
+
+import org.springframework.util.StopWatch;
 
 public class SortingDriver {
 
     public static void main(String[] args) {
+        int[] sizes = {100, 1000, 10000};
+        String[] patterns = {"sorted", "random", "reverse"};
 
-        // Generate array of random Integers
-        Integer[] arr = IntStream.generate(() -> (int) (Math.random() * 50000))
-                .boxed()
-                .limit(10000)
-                .toArray(Integer[]::new);
-
-        Integer[] copy1 = copyArray(arr);
-        Integer[] copy2 = copyArray(arr);
-        Integer[] copy3 = copyArray(arr);
-
-        System.out.println("\nUnsorted data...");
-        printFirstTenOfArray(arr);
-
-        StopWatch stopWatch = new StopWatch();
-
-        System.out.println("\nGnome Sort...");
-        stopWatch.start("Gnome Sort");
-        SortingUtility.gnomeSort(copy1);
-        stopWatch.stop();
-        printFirstTenOfArray(copy1);
-        System.out.println("Time elapsed: " + stopWatch.getLastTaskTimeNanos() / 1_000_000.0 + " ms");
-
-        System.out.println("\nCocktail Shaker Sort...");
-        stopWatch.start("Cocktail Shaker Sort");
-        SortingUtility.cocktailShakerSort(copy2);
-        stopWatch.stop();
-        printFirstTenOfArray(copy2);
-        System.out.println("Time elapsed: " + stopWatch.getLastTaskTimeNanos() / 1_000_000.0 + " ms");
-
-        System.out.println("\nShell Sort...");
-        stopWatch.start("Shell Sort");
-        SortingUtility.shellSort(copy3);
-        stopWatch.stop();
-        printFirstTenOfArray(copy3);
-        System.out.println("Time elapsed: " + stopWatch.getLastTaskTimeNanos() / 1_000_000.0 + " ms");
-
-        System.out.println("\n" + stopWatch.prettyPrint());
-    }
-
-    private static <T> void printFirstTenOfArray(T[] obj) {
-
-        if (obj != null) {
-            int counter = 1;
-            System.out.println("\nFirst 10 of Array...");
-
-            for (T i : obj) {
-                System.out.println(counter + ": " + i.toString());
-                if (counter >= 10) {
-                    break;
-                }
-                counter++;
+        for (int size : sizes) {
+            for (String pattern : patterns) {
+                runPerformanceTest(size, pattern);
             }
-
-        } else {
-            System.out.println("Array is null.");
         }
     }
 
-    private static <T> T[] copyArray(T[] obj) {
+    private static void runPerformanceTest(int size, String pattern) {
+        Integer[] original = generateArray(size, pattern);
 
-        T[] copy = (T[]) Arrays.copyOf(obj, obj.length);
-        return copy;
+        Integer[] gnomeCopy = copyArray(original);
+        Integer[] cocktailCopy = copyArray(original);
+        Integer[] shellCopy = copyArray(original);
+
+        System.out.println("\n========================================");
+        System.out.println("Input Size: " + size);
+        System.out.println("Pattern: " + pattern);
+        System.out.println("========================================");
+
+        StopWatch stopWatch = new StopWatch();
+
+        stopWatch.start("Gnome Sort");
+        SortingUtility.gnomeSort(gnomeCopy);
+        stopWatch.stop();
+        System.out.println("Gnome Sort: " + stopWatch.getLastTaskTimeNanos() / 1_000_000.0 + " ms");
+
+        stopWatch.start("Cocktail Shaker Sort");
+        SortingUtility.cocktailShakerSort(cocktailCopy);
+        stopWatch.stop();
+        System.out.println("Cocktail Shaker Sort: " + stopWatch.getLastTaskTimeNanos() / 1_000_000.0 + " ms");
+
+        stopWatch.start("Shell Sort");
+        SortingUtility.shellSort(shellCopy);
+        stopWatch.stop();
+        System.out.println("Shell Sort: " + stopWatch.getLastTaskTimeNanos() / 1_000_000.0 + " ms");
+
+        System.out.println(stopWatch.prettyPrint());
     }
 
+    private static Integer[] generateArray(int size, String pattern) {
+        Integer[] arr = new Integer[size];
+
+        switch (pattern.toLowerCase()) {
+            case "sorted":
+                for (int i = 0; i < size; i++) {
+                    arr[i] = i;
+                }
+                break;
+
+            case "reverse":
+                for (int i = 0; i < size; i++) {
+                    arr[i] = size - i;
+                }
+                break;
+
+            case "random":
+                Random random = new Random();
+                for (int i = 0; i < size; i++) {
+                    arr[i] = random.nextInt(50000);
+                }
+                break;
+
+            default:
+                throw new IllegalArgumentException("Unknown pattern: " + pattern);
+        }
+
+        return arr;
+    }
+
+    private static <T> T[] copyArray(T[] obj) {
+        return Arrays.copyOf(obj, obj.length);
+    }
 }
